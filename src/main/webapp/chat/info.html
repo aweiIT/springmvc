@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>my information</title>
+<style type="text/css">
+* {
+	margin: 0px;
+	padding: 0px;
+}
+
+body {
+	background-color: white;
+	word-wrap: break-word;
+}
+
+.info {
+	margin-top: 5%;
+}
+
+.infoHead {
+	margin-left: 40%;
+	font-size: 20px;
+	margin-bottom: 5%;
+}
+
+.infoItem {
+	padding: 10px 0;
+	margin-left: 10px;
+	border-bottom: 1px solid #e4e4e4;
+}
+
+.infoName {
+	padding-right: 20px;
+	border-right: 1px solid #e4e4e4;
+	margin-left: 5px;
+}
+
+.infoValue {
+	display: inline;
+	width: 50px;
+	height: 20px;
+}
+
+.infoImg {
+	width: 40px;
+	height: 40px;
+	margin: -10px 0;
+	background-size: 100%;
+	display: inline-block;
+	border-radius: 10px;
+	color: white;
+}
+
+input[type=text] {
+	border-width: 0px;
+	height: 20px;
+	width: 70%;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.infoBtn {
+	margin: 20px auto;
+	width: 120px;
+	height: 33px;
+	background-color: red;
+	border-radius: 10px;
+	text-align: center;
+	font-size: 20px;
+	color: white;
+	padding-top: 10px;
+}
+</style>
+
+</head>
+<body>
+	<div class="info">
+		<div class="infoHead">个人资料</div>
+		<div class="infoItem">
+			<span class="infoName">昵称</span> <input type="text" id="nickName"
+				placeholder="请输入昵称"></input>
+		</div>
+		<div class="infoItem">
+			<span class="infoName">头像</span> <span class="infoImg"></span>
+		</div>
+		<div class="infoItem">
+			<span class="infoName">签名</span> <input type="text" id="desc"
+				placeholder="个人签名"></input>
+		</div>
+		<div class="infoBtn">提交</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+
+function start(){
+	var index = Math.round(Math.random() * 30 + 1);
+    $(".infoImg")
+            .css("background-image", "url('img/QQ/" + index + ".bmp')");
+    $(".infoBtn").click(
+            function() {
+
+                //保存cookie 
+                var id = new Date().getTime().toString().substring(3)
+                        + Math.random().toString().substring(2, 7);
+                var str = id + "&" + $("#nickName").val() + "&" + index
+                        + "&" + $("#desc").val();
+                setCookie(str);
+                //保存该用户信息到服务端
+                initSocket(id);
+                chatList({
+                    "type" : "add",
+                    "ID" : id,
+                    "nickName" : $("#nickName").val(),
+                    "desc" : $("#desc").val()
+                });
+            });
+	
+}
+</script>
+</html>

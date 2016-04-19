@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- chat基础页面，页面间跳转采用load方式。 -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link href="chat.css" rel="stylesheet" type="text/css">
+<script src="jquery.js"></script>
+<script src="base.js"></script>
+<script src="chat.js"></script>
+<script src="jquery.tmpl.js"></script>
+<title>onLine friends</title>
+<style type="text/css">
+* {
+	margin: 0px;
+	padding: 0px;
+}
+
+body {
+	background-color: #EAEFF1;
+	font-size: 14px;
+}
+
+audio {
+	display: none;
+}
+</style>
+
+</head>
+<body>
+	<div class="onLine"></div>
+	<div class="chatMsg"></div>
+	<audio controls="controls" id="audio">
+		<source src="msg.mp3" type="audio/mpeg">
+		<source src="msg.ogg" type="audio/ogg">
+	</audio>
+</body>
+<script id="item" type="text/x-jquery-tmpl">
+        {{each(_index,obj) data}}
+       <div class="item newUser" id="${obj.ID}" index=${_index} onClick="itemClickEvent(this)">
+			<div class="headImg" style="background-image:url('img/QQ/${obj.index}.bmp')"></div>
+			<div class="context">
+				<div class="name">${obj.nickName}</div>
+				<div class="address">${desc}</div>
+			</div>
+			<div class="clear"></div>
+		</div>
+        {{/each}}
+</script>
+<script id="myDevice" type="text/x-jquery-tmpl">
+       <div class="item" id="${ID}">
+            <div class="headImg" style="background-image:url('img/QQ/${index}.bmp')"></div>
+            <div class="context">
+                <div class="name">${nickName} (我的设备)</div>
+                <div class="address">${desc}</div>
+            </div>
+            <div class="clear"></div>
+        </div>
+</script>
+<script type="text/javascript">
+	var cookie;
+	$(function() {
+		//设置宽度  超出省略号
+		cookie = getCookie();
+		if (!cookie) {
+			$(".onLine").load(
+					"info.html",
+					function() {
+						var index = Math.round(Math.random() * 30 + 1);
+						$(".infoImg").css("background-image",
+								"url('img/QQ/" + index + ".bmp')");
+						$(".infoBtn").click(
+								function() {
+
+									//保存cookie 
+									var id = new Date().getTime().toString()
+											.substring(3)
+											+ Math.random().toString()
+													.substring(2, 7);
+									var str = id + "&"
+											+ escape($("#nickName").val())
+											+ "&" + index + "&"
+											+ escape($("#desc").val());
+									cookie = str;
+									setCookie(str);
+									//保存该用户信息到服务端
+									initSocket(id);
+									chatList({
+										type : "add",
+										ID : id,
+										index : index,
+										nickName :$("#nickName").val(),
+										desc :$("#desc").val()
+									});
+								});
+
+					});
+		} else {
+			initSocket(cookie.split("&")[0]);
+			chatList({
+				ID : cookie.split("&")[0]
+			});
+		}
+	})
+	/*
+	    1:检查是否有cookie，没有则弹出提示框输入昵称，系统随机分配头像，ID，cookie中保存该信息，若有cookie，则取出信息，显示头像和昵称, 根据ID连接websocket
+	    2:接收消息,若类型为有新朋友上线,则显示对方信息(头像,昵称)若为普通消息则显示正常消息体
+	    
+	 */
+	function chatList(param) {
+		imgNum = cookie.split("&")[2];
+		$.ajax({
+			data : JSON.stringify(param),
+			type : "post",
+            url : "http://10.10.40.51:8081/springmvc/chat_list.do",
+            dataType : "json",
+            contentType : "application/json;charset=UTF-8",
+			success : function(_data) {
+				$(".info").remove();
+				$("#myDevice").tmpl(_data.myDevice).appendTo($(".onLine"));
+				$("#item").tmpl({
+					data : _data.list
+				}).appendTo($(".onLine"));
+			},
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				alert("error!");
+			}
+		});
+	}
+</script>
+</html>

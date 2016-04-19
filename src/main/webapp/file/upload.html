@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<script src="../js/jquery.js"></script>
+<title>upload</title>
+<style type="text/css">
+</style>
+
+</head>
+<body>
+	<div id="a">上传</div>
+
+</body>
+
+<script type="text/javascript">
+	var start = new Date().getTime();
+	$(function() {
+		/** ajax取数据 */
+		initSocket();
+		$("#a").click(function() {
+			ajaxServer();
+		});
+
+	})
+	var index = 0;
+	function ajaxServer() {
+		var param={name : "D:/APP/dependency.rar",num : index};
+		$.ajax({
+			data : JSON.stringify(param),
+            type : "post",
+            url : "http://10.10.40.51:8081/springmvc/files.do",
+            dataType : "json",
+            contentType : "application/json;charset=UTF-8",
+			success : function(data) {
+				send(data);
+			},
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				alert("暂无此数据");
+			}
+		}); // end
+	}
+	var webSocket;
+	function send(data) {
+		var flag = data.flag;
+		var data = data.list;
+		for (var i = 0; i < data.length; i++) {
+			var param = {
+				num : i,
+				str : data[i]
+			};
+			if (i == data.length - 1 && (flag == 1)) {
+				param = {
+					num : -1,
+					str : data[i]
+				};
+			}
+			webSocket.send(JSON.stringify(param));
+		}
+		if (flag == 0) {
+			index++;
+			ajaxServer();
+		}
+	}
+	function initSocket() {
+		webSocket = new WebSocket("ws://123.56.120.179:8081/h5/files.ws/A");
+		// 收到服务端消息
+		webSocket.onmessage = function(event) {
+			var times = new Date().getTime() - start;
+			console.log("传输完成！时长" + times + "ms");
+		};
+		// 异常
+		webSocket.onerror = function(event) {
+			console.log("onerror" + event);
+		};
+		// 建立连接
+		webSocket.onopen = function(event) {
+			isInit = true;
+			console.log("onopen" + event);
+		};
+		// 断线重连
+		webSocket.onclose = function() {
+
+		};
+	}//338068
+</script>
+</html>
